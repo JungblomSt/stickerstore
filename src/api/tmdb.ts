@@ -1,7 +1,7 @@
 import { Movie, PagedResponse, MovieDetails, MovieImages } from '../types';
 
 const TMDB_URL = 'https://api.themoviedb.org/3';
-export const TMDB_TOKEN = process.env.EXPO_PUBLIC_TMDB_TOKEN ?? '';
+const TMDB_TOKEN = process.env.EXPO_PUBLIC_TMDB_TOKEN ?? '';
 
 export class ApiError extends Error {
     status: number | 'FETCH_ERROR';
@@ -53,3 +53,19 @@ export function imageUrl(path: string | null, size: 'w300' | 'w780' = 'w300'): s
     if (!path) return null;
     return `https://image.tmdb.org/t/p/${size}${path}`;
     }
+
+export async function getMovies(
+  search: string = '',
+  signal?: AbortSignal
+): Promise<Movie[]> {
+  const term = search.trim();
+  if (!term) {
+    return getPopularMovies(signal);
+  }
+  
+const data = await fetchFromTmdb<PagedResponse<Movie>>(
+    `/search/movie?query=${encodeURIComponent(term)}&language=sv-SE&region=SE`,
+    signal,
+  );
+  return data.results;  
+}
