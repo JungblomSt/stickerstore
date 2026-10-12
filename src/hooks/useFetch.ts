@@ -1,10 +1,13 @@
 import { useState, useEffect, DependencyList, useCallback, useRef } from "react";
 
+const sameDeps = (a: DependencyList, b: DependencyList) =>
+  a.length !== b.length && a.every((value, index) => Object.is(value, b[index]));
+
 export const useFetch = <T>(
     fetcher: ((signal: AbortSignal) => Promise<T>) | null,
     deps: DependencyList = []
 ) => {
-  const [data, setData] = useState<T | null>(null);
+  const [result, setResult] = useState<{ deps: DependencyList; data: T } | null>(null);
   const [loading, setLoading] = useState(fetcher !== null);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState<number>(0);
@@ -22,13 +25,14 @@ export const useFetch = <T>(
         return;
         }
 
+    const requestDeps = deps;
     const controller = new AbortController();
     setLoading(true);
     setError(null);
 
     currentFetcher(controller.signal)
       .then((response) => {
-        if (!controller.signal.aborted) setData(response);
+        if (!controller.signal.aborted) setResult({ deps: requestDeps, data: response });
       })
       .catch((err) => {
         if (!controller.signal.aborted) setError(err.message);
@@ -44,5 +48,8 @@ export const useFetch = <T>(
     setReloadKey((prevKey) => prevKey + 1);
   }, []);
 
-  return { data, loading, error, reload };
+  const data = result?.data ?? null;
+  const currentData = result?.deps && sameDeps(result.deps, deps) ? result.data : null;
+
+  return { data, currentData, loading, error, reload };
 };

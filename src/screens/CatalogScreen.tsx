@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Button,
   ActivityIndicator,
@@ -6,20 +7,21 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import type { CatalogScreenProps } from "../navigation/types";
 import { imageUrl, getPopularMovies } from "../api/tmdb";
 import { useFetch } from "../hooks/useFetch";
+import { useMovies } from "../hooks/useMovies";
+import { useDebouncedValue } from "../utils/helpers";
 import { errorMessage } from "../utils/errorMessage";
 
 export default function CatalogScreen({ navigation }: CatalogScreenProps) {
-  const {
-    data: movies,
-    loading,
-    error,
-    reload,
-  } = useFetch(() => getPopularMovies(), []);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search.trim(), 400);
+
+  const { data: movies, loading, error, reload } = useMovies(debouncedSearch);
 
   if (error && !movies) {
     return (
@@ -30,13 +32,40 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
     );
   }
 
+  const renderEmpty = () => {
+    if (loading) return <ActivityIndicator style={styles.empty} />;
+    if (error)
+      return (
+        <View style={styles.empty}>
+          <Text style={styles.message}>{errorMessage(error)}</Text>
+          <Button title="Försök igen" onPress={reload} />
+        </View>
+      );
+    if (movies && debouncedSearch)
+      return (
+        <Text style={[styles.message, styles.empty]}>
+          Inga filmer matchade "{debouncedSearch}".
+        </Text>
+      );
+    return null;
+  };
+
   return (
     <View style={styles.container}>
+      <TextInput
+        style={styles.search}
+        placeholder="Sök filmer..."
+        value={search}
+        onChangeText={setSearch}
+      />
       <FlatList
         data={movies ?? []}
         keyExtractor={(movie) => String(movie.id)}
         numColumns={2}
         contentContainerStyle={styles.list}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        ListEmptyComponent={renderEmpty}
         renderItem={({ item }) => {
           const uri = imageUrl(item.backdrop_path ?? item.poster_path);
           return (
@@ -94,4 +123,12 @@ const styles = StyleSheet.create({
   footer: { marginTop: 12, alignItems: "center" },
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
   message: { fontSize: 16, textAlign: "center" },
+  search: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 6,
+    padding: 6,
+    marginBottom: 12,
+  },
+  empty: { flex: 1, alignItems: "center", justifyContent: "center" },
 });
