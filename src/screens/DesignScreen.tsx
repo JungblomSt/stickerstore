@@ -14,6 +14,9 @@ import { getMovieDetails, getMovieImages, imageUrl } from "../api/tmdb";
 import { useFetch } from "../hooks/useFetch";
 import type { DesignScreenProps } from "../navigation/types";
 import { errorMessage } from "../utils/errorMessage";
+import { colors, fontSize, spacing } from "../theme";
+import { CartButton } from "../components/CartButton";
+import { AppButton } from "../components/AppButton";
 
 type Tab = "backdrops" | "logos";
 
@@ -36,8 +39,8 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
   if (details.loading && !details.data) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" />
-        <Text>Hämtar filmen…</Text>
+        <ActivityIndicator size="large" color={colors.textOnDark} />
+        <Text style={styles.message}>Hämtar filmen…</Text>
       </View>
     );
   }
@@ -46,7 +49,7 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
     return (
       <View style={styles.center}>
         <Text style={styles.message}>{errorMessage(details.error)}</Text>
-        <Button title="Tillbaka" onPress={() => navigation.goBack()} />
+        <CartButton title="Tillbaka" onPress={() => navigation.goBack()} />
       </View>
     );
   }
@@ -66,18 +69,20 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
       {/* Förhandsvisning */}
-      <View style={[styles.preview, isLogoPreview && styles.logoBackground]}>
-        {previewUri ? (
-          <Image
-            source={{ uri: previewUri }}
-            style={isLogoPreview ? styles.previewLogo : styles.previewImage}
-            resizeMode={isLogoPreview ? "contain" : "cover"}
-          />
-        ) : (
-          <Text>Ingen bild</Text>
-        )}
+      <View style={styles.sticker}>
+        <View style={[styles.preview, isLogoPreview && styles.logoBackground]}>
+          {previewUri ? (
+            <Image
+              source={{ uri: previewUri }}
+              style={isLogoPreview ? styles.previewLogo : styles.previewImage}
+              resizeMode={isLogoPreview ? "contain" : "cover"}
+            />
+          ) : (
+            <Text style={styles.noImageText}>Ingen bild</Text>
+          )}
+        </View>
       </View>
 
       {/* Filmfakta från getMovieDetails */}
@@ -98,25 +103,26 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
         <Text style={styles.overview}>{movie.overview}</Text>
       ) : null}
 
-      {/* Bilder från getMovieImages */}
+      {/* Bild kategorier */}
       <View style={styles.tabs}>
-        <Button
-          title={`Bakgrundsbilder (${images.data?.backdrops.length ?? 0})`}
-          onPress={() => changeTab("backdrops")}
-          color={tab === "backdrops" ? "#000" : "#888"}
+        <AppButton
+          label={`Bilder (${images.data?.backdrops.length ?? 0})`}
+          selected={tab === "backdrops"}
+          onPress={() => setTab("backdrops")}
         />
-        <Button
-          title={`Loggor (${images.data?.logos.length ?? 0})`}
-          onPress={() => changeTab("logos")}
-          color={tab === "logos" ? "#000" : "#888"}
+        <AppButton
+          label={`Loggor (${images.data?.logos.length ?? 0})`}
+          selected={tab === "logos"}
+          onPress={() => setTab("logos")}
         />
       </View>
 
+      {/* Bildlista */}
       {images.loading && !images.data ? (
-        <ActivityIndicator />
+        <ActivityIndicator color={colors.textOnDark} />
       ) : images.error ? (
         <View style={styles.inlineError}>
-          <Text>{errorMessage(images.error)}</Text>
+          <Text style={styles.message}>{errorMessage(images.error)}</Text>
         </View>
       ) : imageList.length === 0 ? (
         <Text style={styles.meta}>
@@ -136,6 +142,9 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
             return (
               <Pressable
                 onPress={() => setSelectedPath(item.file_path)}
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
+                accessibilityLabel={tab === "logos" ? "Logo" : "Bakgrundsbild"}
                 style={[styles.thumb, selected && styles.thumbSelected]}
               >
                 <Image
@@ -153,7 +162,7 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
       )}
 
       <View style={styles.footer}>
-        <Button
+        <CartButton
           title="Till kundvagnen"
           onPress={() => navigation.navigate("Cart")}
         />
@@ -163,36 +172,69 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, gap: 8 },
+  screen: { flex: 1, backgroundColor: colors.background },
+  container: { padding: spacing.m, gap: spacing.s },
   center: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: 12,
-    padding: 24,
+    gap: spacing.m,
+    padding: spacing.l,
+    backgroundColor: colors.background,
   },
-  message: { textAlign: "center", fontSize: 16 },
+  message: {
+    fontSize: fontSize.body,
+    textAlign: "center",
+    color: colors.textOnDark,
+  },
+  noImageText: { color: colors.textSecondary },
+  sticker: {
+    padding: spacing.s,
+    borderWidth: 2,
+    borderColor: colors.cut,
+    borderRadius: spacing.m,
+    backgroundColor: colors.surface,
+    borderStyle: "dashed",
+  },
   preview: {
     width: "100%",
     aspectRatio: 16 / 9,
-    borderRadius: 12,
+    borderRadius: spacing.m,
     overflow: "hidden",
-    backgroundColor: "#ddd",
+    backgroundColor: colors.cut,
     alignItems: "center",
     justifyContent: "center",
   },
   previewImage: { width: "100%", height: "100%" },
   previewLogo: { width: "80%", height: "80%" },
-  logoBackground: { backgroundColor: "#1c1c1e" },
-  title: { fontSize: 24, fontWeight: "bold", marginTop: 8 },
-  meta: { color: "#666" },
-  tagline: { fontStyle: "italic" },
-  overview: { lineHeight: 21 },
-  tabs: { flexDirection: "row", justifyContent: "space-around", marginTop: 12 },
-  inlineError: { alignItems: "center", gap: 8 },
-  thumbs: { gap: 8, paddingVertical: 8 },
-  thumb: { borderWidth: 3, borderColor: "transparent", borderRadius: 8 },
-  thumbSelected: { borderColor: "#f5b400" },
+  logoBackground: { backgroundColor: colors.logoBackground },
+  title: {
+    fontSize: fontSize.title,
+    fontWeight: "bold",
+    marginTop: 8,
+    color: colors.textOnDark,
+  },
+  meta: { color: colors.textOnDarkSecondary },
+  tagline: {
+    fontStyle: "italic",
+    color: colors.textOnDark,
+    fontSize: fontSize.body,
+  },
+  overview: { lineHeight: 21, color: colors.textOnDark },
+  tabs: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: spacing.m,
+    color: colors.textOnDark,
+  },
+  inlineError: { alignItems: "center", gap: spacing.s },
+  thumbs: { gap: spacing.s, paddingVertical: spacing.s },
+  thumb: {
+    borderWidth: 3,
+    borderColor: "transparent",
+    borderRadius: spacing.m,
+  },
+  thumbSelected: { borderColor: colors.accent },
   thumbImage: { width: 128, aspectRatio: 16 / 9, borderRadius: 5 },
-  footer: { marginTop: 16 },
+  footer: { marginTop: spacing.m, alignItems: "center" },
 });

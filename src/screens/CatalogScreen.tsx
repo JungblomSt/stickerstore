@@ -16,6 +16,8 @@ import { useFetch } from "../hooks/useFetch";
 import { useMovies } from "../hooks/useMovies";
 import { useDebouncedValue } from "../utils/helpers";
 import { errorMessage } from "../utils/errorMessage";
+import { colors, fontSize, spacing } from "../theme";
+import { CartButton } from "../components/CartButton";
 
 export default function CatalogScreen({ navigation }: CatalogScreenProps) {
   const [search, setSearch] = useState("");
@@ -54,10 +56,16 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
     <View style={styles.container}>
       <TextInput
         style={styles.search}
-        placeholder="Sök filmer..."
+        placeholder="Sök film"
+        placeholderTextColor={colors.textSecondary}
         value={search}
         onChangeText={setSearch}
       />
+      <Text style={styles.heading}>
+        {debouncedSearch
+          ? `Sökresultat för "${debouncedSearch}"`
+          : "Populära filmer"}
+      </Text>
       <FlatList
         data={movies ?? []}
         keyExtractor={(movie) => String(movie.id)}
@@ -79,7 +87,7 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
                 <Image source={{ uri }} style={styles.image} />
               ) : (
                 <View style={[styles.image, styles.noImage]}>
-                  <Text>Ingen bild</Text>
+                  <Text style={styles.noImageText}>Ingen bild</Text>
                 </View>
               )}
               <Text style={styles.title} numberOfLines={2}>
@@ -91,7 +99,7 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
         }}
       />
       <View style={styles.footer}>
-        <Button
+        <CartButton
           title="Till kundvagnen"
           onPress={() => navigation.navigate("Cart")}
         />
@@ -103,32 +111,62 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 12,
+    padding: spacing.m,
+    backgroundColor: colors.background,
   },
-  title: { fontSize: 24, fontWeight: "bold" },
-  list: { gap: 12 },
-  card: { flex: 1, margin: 6, alignItems: "center", gap: 6 },
+  search: {
+    backgroundColor: colors.surface,
+    color: colors.text,
+    borderWidth: 2,
+    borderColor: colors.cut,
+    borderRadius: spacing.m,
+    padding: spacing.m,
+    fontSize: fontSize.body,
+    marginBottom: spacing.m,
+  },
+  title: { fontSize: fontSize.title, fontWeight: "bold", color: colors.text },
+  heading: {
+    fontSize: fontSize.heading,
+    fontWeight: "bold",
+    color: colors.textOnDark,
+  },
+  list: { gap: spacing.m, paddingBottom: spacing.m },
+  card: {
+    flex: 1,
+    margin: spacing.s,
+    alignItems: "center",
+    gap: spacing.s,
+    backgroundColor: colors.surface,
+    padding: spacing.m,
+    borderRadius: spacing.m,
+    borderWidth: 2,
+    borderColor: colors.cut,
+  },
   image: {
     width: "100%",
     aspectRatio: 16 / 9,
-    borderRadius: 6,
-    backgroundColor: "#ccc",
+    borderRadius: spacing.m,
   },
   noImage: {
-    backgroundColor: "#ccc",
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 2,
+    borderColor: colors.cut,
+    backgroundColor: colors.surface,
   },
-  year: { fontSize: 12, color: "#666" },
-  footer: { marginTop: 12, alignItems: "center" },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
-  message: { fontSize: 16, textAlign: "center" },
-  search: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 6,
-    padding: 6,
-    marginBottom: 12,
+  noImageText: { color: colors.textSecondary },
+  year: { fontSize: fontSize.small, color: colors.textSecondary },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.m,
+  },
+  message: {
+    fontSize: fontSize.body,
+    textAlign: "center",
+    color: colors.textOnDark,
   },
   empty: { flex: 1, alignItems: "center", justifyContent: "center" },
+  footer: { marginTop: spacing.m, alignItems: "center" },
 });
