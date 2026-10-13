@@ -32,6 +32,7 @@ const palette = {
   cornSilk: "#FAF4D3",
   metallicGold: "#D1AC00",
   peachGlow: "#F6BE9A",
+  transparent: "transparent",
 };
 
 export const colors = {
@@ -43,6 +44,6 @@ export const colors = {
   textOnDarkSecondary: palette.peachGlow, // sekundär text på mörk bakgrund
   accent: palette.metallicGold,   // knappar och markeringar
   cut: palette.peachGlow,         // skärlinjer, platshållare
-  logoBackground: palette.cornSilk, // bakgrund för transparenta logotyper
+  logoBackground: palette.transparent, // bakgrund för transparenta logotyper
   danger: "#B3261E",
 } as const;

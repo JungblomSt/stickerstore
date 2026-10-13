@@ -8,6 +8,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { getMovieDetails, getMovieImages, imageUrl } from "../api/tmdb";
@@ -17,11 +18,22 @@ import { errorMessage } from "../utils/errorMessage";
 import { colors, fontSize, spacing } from "../theme";
 import { CartButton } from "../components/CartButton";
 import { AppButton } from "../components/AppButton";
+import { Motif, MotifType, TmdbImage } from "../types";
+import StickerPreview from "../components/StickerPreview";
 
 type Tab = "backdrops" | "logos";
 
+function toMotif(type: MotifType, image: TmdbImage): Motif {
+  return {
+    type,
+    filePath: image.file_path,
+    aspectRatio: image.aspect_ratio,
+  };
+}
+
 export default function DesignScreen({ navigation, route }: DesignScreenProps) {
   const { movieId } = route.params;
+  const { width: screenWidth } = useWindowDimensions();
 
   // Två anrop som körs samtidigt: filmens fakta och filmens bilder.
   const details = useFetch(
@@ -34,7 +46,7 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
   );
 
   const [tab, setTab] = useState<Tab>("backdrops");
-  const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  const [selectedMotif, setSelectedMotif] = useState<Motif | null>(null);
 
   if (details.loading && !details.data) {
     return (
@@ -55,55 +67,36 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
   }
 
   const movie = details.data;
-  const imageList = images.data?.[tab] ?? [];
+  const backdrops = images.data?.backdrops ?? [];
+  const logos = images.data?.logos ?? [];
+  const imageList = tab === "backdrops" ? backdrops : logos;
 
-  // Förhandsvisning: valt motiv, annars första bilden i fliken, annars filmens bakgrundsbild.
-  const previewPath =
-    selectedPath ?? imageList[0]?.file_path ?? movie.backdrop_path;
-  const previewUri = imageUrl(previewPath, "w780");
-  const isLogoPreview = tab === "logos" && previewPath !== movie.backdrop_path;
+  // Valt motiv, annars första bakgrundsbilden, annars första loggan.
+  const defaultMotif = backdrops[0]
+    ? toMotif("backdrop", backdrops[0])
+    : logos[0]
+      ? toMotif("logo", logos[0])
+      : null;
+  const motif = selectedMotif ?? defaultMotif;
 
-  const changeTab = (newTab: Tab) => {
-    setTab(newTab);
-    setSelectedPath(null);
-  };
+  // Förhandsvisningen får plats med marginaler, men blir aldrig bredare än 420.
+  const previewWidth = Math.min(screenWidth - 64, 420);
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
       {/* Förhandsvisning */}
-      <View style={styles.sticker}>
-        <View style={[styles.preview, isLogoPreview && styles.logoBackground]}>
-          {previewUri ? (
-            <Image
-              source={{ uri: previewUri }}
-              style={isLogoPreview ? styles.previewLogo : styles.previewImage}
-              resizeMode={isLogoPreview ? "contain" : "cover"}
-            />
-          ) : (
-            <Text style={styles.noImageText}>Ingen bild</Text>
-          )}
-        </View>
+      <View style={styles.sheet}>
+        {motif ? (
+          <StickerPreview motif={motif} width={previewWidth} />
+        ) : images.loading ? (
+          <ActivityIndicator />
+        ) : (
+          <Text style={styles.meta}>Inga motiv att välja bland</Text>
+        )}
       </View>
 
-      {/* Filmfakta från getMovieDetails */}
-      <Text style={styles.title}>{movie.title}</Text>
-      <Text style={styles.meta}>
-        {[
-          movie.release_date?.slice(0, 4),
-          movie.runtime ? `${movie.runtime} min` : null,
-          movie.genres.map((g) => g.name).join(", "),
-        ]
-          .filter(Boolean)
-          .join(" · ")}
-      </Text>
-      {movie.tagline ? (
-        <Text style={styles.tagline}>{movie.tagline}</Text>
-      ) : null}
-      {movie.overview ? (
-        <Text style={styles.overview}>{movie.overview}</Text>
-      ) : null}
-
       {/* Bild kategorier */}
+      <Text style={styles.label}>Välj motiv</Text>
       <View style={styles.tabs}>
         <AppButton
           label={`Bilder (${images.data?.backdrops.length ?? 0})`}
@@ -123,9 +116,10 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
       ) : images.error ? (
         <View style={styles.inlineError}>
           <Text style={styles.message}>{errorMessage(images.error)}</Text>
+          <Button title="Försök igen" onPress={images.reload} />
         </View>
       ) : imageList.length === 0 ? (
-        <Text style={styles.meta}>
+        <Text style={styles.noImageText}>
           {tab === "logos"
             ? "Filmen har inga loggor."
             : "Filmen har inga bakgrundsbilder."}
@@ -138,10 +132,14 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.thumbs}
           renderItem={({ item }) => {
-            const selected = item.file_path === previewPath;
+            const selected = motif?.filePath === item.file_path;
             return (
               <Pressable
-                onPress={() => setSelectedPath(item.file_path)}
+                onPress={() =>
+                  setSelectedMotif(
+                    toMotif(tab === "logos" ? "logo" : "backdrop", item),
+                  )
+                }
                 accessibilityRole="button"
                 accessibilityState={{ selected }}
                 accessibilityLabel={tab === "logos" ? "Logo" : "Bakgrundsbild"}
@@ -151,7 +149,7 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
                   source={{ uri: imageUrl(item.file_path) ?? undefined }}
                   style={[
                     styles.thumbImage,
-                    tab === "logos" && styles.logoBackground,
+                    tab === "logos" && styles.thumbLogo,
                   ]}
                   resizeMode={tab === "logos" ? "contain" : "cover"}
                 />
@@ -160,6 +158,23 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
           }}
         />
       )}
+      {/* Filmfakta från getMovieDetails */}
+      <Text style={styles.title}>{movie.title}</Text>
+      <Text style={styles.meta}>
+        {[
+          movie.release_date?.slice(0, 4),
+          movie.runtime ? `${movie.runtime} min` : null,
+          movie.genres.map((g) => g.name).join(", "),
+        ]
+          .filter(Boolean)
+          .join(" · ")}
+      </Text>
+      {movie.tagline ? (
+        <Text style={styles.tagline}>{movie.tagline}</Text>
+      ) : null}
+      {movie.overview ? (
+        <Text style={styles.overview}>{movie.overview}</Text>
+      ) : null}
 
       <View style={styles.footer}>
         <CartButton
@@ -172,14 +187,15 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
 }
 
 const styles = StyleSheet.create({
+  // Skärmen
   screen: { flex: 1, backgroundColor: colors.background },
-  container: { padding: spacing.m, gap: spacing.s },
+  container: { padding: spacing.l, gap: spacing.s },
   center: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     gap: spacing.m,
-    padding: spacing.l,
+    padding: spacing.xl,
     backgroundColor: colors.background,
   },
   message: {
@@ -187,54 +203,64 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: colors.textOnDark,
   },
-  noImageText: { color: colors.textSecondary },
-  sticker: {
-    padding: spacing.s,
-    borderWidth: 2,
-    borderColor: colors.cut,
-    borderRadius: spacing.m,
-    backgroundColor: colors.surface,
-    borderStyle: "dashed",
-  },
-  preview: {
-    width: "100%",
-    aspectRatio: 16 / 9,
-    borderRadius: spacing.m,
-    overflow: "hidden",
-    backgroundColor: colors.cut,
+
+  // Arket som klistermärket ligger på
+  sheet: {
     alignItems: "center",
     justifyContent: "center",
+    minHeight: 200,
+    padding: spacing.l,
+    borderRadius: spacing.l,
+    borderWidth: 2,
+    borderStyle: "dashed",
+    borderColor: colors.cut,
+    backgroundColor: colors.surface,
   },
-  previewImage: { width: "100%", height: "100%" },
-  previewLogo: { width: "80%", height: "80%" },
-  logoBackground: { backgroundColor: colors.logoBackground },
+  noImageText: { color: colors.textSecondary, fontSize: fontSize.body },
+
+  // Filmfakta
   title: {
     fontSize: fontSize.title,
     fontWeight: "bold",
-    marginTop: 8,
     color: colors.textOnDark,
+    marginTop: spacing.m,
   },
-  meta: { color: colors.textOnDarkSecondary },
+  meta: { fontSize: fontSize.small, color: colors.textOnDarkSecondary },
   tagline: {
+    fontSize: fontSize.body,
     fontStyle: "italic",
     color: colors.textOnDark,
-    fontSize: fontSize.body,
   },
-  overview: { lineHeight: 21, color: colors.textOnDark },
-  tabs: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: spacing.m,
+  overview: {
+    fontSize: fontSize.body,
+    lineHeight: fontSize.body * 1.4,
     color: colors.textOnDark,
   },
+
+  // Motivval
+  label: {
+    fontSize: fontSize.heading,
+    fontWeight: "bold",
+    color: colors.textOnDark,
+    marginTop: spacing.l,
+  },
+  tabs: { flexDirection: "row", justifyContent: "space-evenly" },
   inlineError: { alignItems: "center", gap: spacing.s },
   thumbs: { gap: spacing.s, paddingVertical: spacing.s },
   thumb: {
     borderWidth: 3,
     borderColor: "transparent",
     borderRadius: spacing.m,
+    padding: 2,
   },
   thumbSelected: { borderColor: colors.accent },
-  thumbImage: { width: 128, aspectRatio: 16 / 9, borderRadius: 5 },
-  footer: { marginTop: spacing.m, alignItems: "center" },
+  thumbImage: {
+    width: 128,
+    aspectRatio: 16 / 9,
+    borderRadius: spacing.s,
+    backgroundColor: colors.surface,
+  },
+  thumbLogo: { backgroundColor: colors.logoBackground },
+
+  footer: { marginTop: spacing.xl, alignItems: "center" },
 });
