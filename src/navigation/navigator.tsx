@@ -4,6 +4,7 @@ import CatalogScreen from "../screens/CatalogScreen";
 import DesignScreen from "../screens/DesignScreen";
 import CartScreen from "../screens/CartScreen";
 import { colors } from "../theme";
+import { HeaderActions } from "../components/HeaderAction";
 
 const Stack = createNativeStackNavigator<NavigationList>();
 
@@ -14,14 +15,23 @@ export const Navigator = () => {
         headerStyle: { backgroundColor: colors.background },
         headerTintColor: colors.textOnDark,
         headerBackButtonDisplayMode: "minimal",
+        headerRight: () => <HeaderActions />,
       }}
     >
-      <Stack.Screen name="Catalog" component={CatalogScreen} />
-      <Stack.Screen name="Design" component={DesignScreen} />
+      <Stack.Screen
+        name="Catalog"
+        component={CatalogScreen}
+        options={{ title: "Katalog" }}
+      />
+      <Stack.Screen
+        name="Design"
+        component={DesignScreen}
+        options={{ title: "Design" }}
+      />
       <Stack.Screen
         name="Cart"
         component={CartScreen}
-        options={{ title: "Varukorg" }}
+        options={{ title: "Varukorg", headerRight: () => null }}
       />
     </Stack.Navigator>
   );

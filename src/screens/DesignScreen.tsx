@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Button,
@@ -11,6 +11,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getMovieDetails, getMovieImages, imageUrl } from "../api/tmdb";
 import { useFetch } from "../hooks/useFetch";
 import type { DesignScreenProps } from "../navigation/types";
@@ -18,11 +19,22 @@ import { errorMessage } from "../utils/errorMessage";
 import { colors, fontSize, spacing } from "../theme";
 import { CartButton } from "../components/CartButton";
 import { AppButton } from "../components/AppButton";
-import { Motif, MotifType, TmdbImage } from "../types";
+import type { Motif, MotifType, TmdbImage, StickerDesign } from "../types";
 import StickerPreview from "../components/StickerPreview";
+import { addSticker } from "../store/cartSlice";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { cartItemId, formatSek, priceForDesign } from "../utils/pricing";
 
 type Tab = "backdrops" | "logos";
 
+// grund/start design på klistermärket
+const DEFAULT_DESIGN: StickerDesign = {
+  shape: "rounded",
+  size: "M",
+  frame: { enabled: false, color: colors.accent },
+};
+
+// gör TMDB-bilden till appens Motif
 function toMotif(type: MotifType, image: TmdbImage): Motif {
   return {
     type,
@@ -34,6 +46,8 @@ function toMotif(type: MotifType, image: TmdbImage): Motif {
 export default function DesignScreen({ navigation, route }: DesignScreenProps) {
   const { movieId } = route.params;
   const { width: screenWidth } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const dispatch = useAppDispatch();
 
   // Två anrop som körs samtidigt: filmens fakta och filmens bilder.
   const details = useFetch(
@@ -47,6 +61,16 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
 
   const [tab, setTab] = useState<Tab>("backdrops");
   const [selectedMotif, setSelectedMotif] = useState<Motif | null>(null);
+
+  const cartItems = useAppSelector((state) => state.cart.items);
+
+  // timer till: visa "Tillagd"
+  const [justAdded, setJustAdded] = useState(false);
+  const addedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+  // stoppar timern om användaren lämnar vyn innan den är klar
+  useEffect(() => () => clearTimeout(addedTimer.current), []);
 
   if (details.loading && !details.data) {
     return (
@@ -79,116 +103,144 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
       : null;
   const motif = selectedMotif ?? defaultMotif;
 
+  const design = DEFAULT_DESIGN;
+
+  const inCart = motif
+    ? (cartItems.find((item) => item.id === cartItemId(movieId, motif, design))
+        ?.quantity ?? 0)
+    : 0;
+
   // Förhandsvisningen får plats med marginaler, men blir aldrig bredare än 420.
   const previewWidth = Math.min(screenWidth - 64, 420);
 
+  const addToCart = () => {
+    if (!motif) return;
+    dispatch(addSticker({ movieId, movieTitle: movie.title, motif, design }));
+    setJustAdded(true);
+    clearTimeout(addedTimer.current);
+    addedTimer.current = setTimeout(() => setJustAdded(false), 1500);
+  };
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
-      {/* Förhandsvisning */}
-      <View style={styles.sheet}>
-        {motif ? (
-          <StickerPreview motif={motif} width={previewWidth} />
-        ) : images.loading ? (
-          <ActivityIndicator />
-        ) : (
-          <Text style={styles.meta}>Inga motiv att välja bland</Text>
-        )}
-      </View>
-
-      {/* Bild kategorier */}
-      <Text style={styles.label}>Välj motiv</Text>
-      <View style={styles.tabs}>
-        <AppButton
-          label={`Bilder (${images.data?.backdrops.length ?? 0})`}
-          selected={tab === "backdrops"}
-          onPress={() => setTab("backdrops")}
-        />
-        <AppButton
-          label={`Loggor (${images.data?.logos.length ?? 0})`}
-          selected={tab === "logos"}
-          onPress={() => setTab("logos")}
-        />
-      </View>
-
-      {/* Bildlista */}
-      {images.loading && !images.data ? (
-        <ActivityIndicator color={colors.textOnDark} />
-      ) : images.error ? (
-        <View style={styles.inlineError}>
-          <Text style={styles.message}>{errorMessage(images.error)}</Text>
-          <Button title="Försök igen" onPress={images.reload} />
+    <View style={styles.screen}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.container}
+      >
+        {/* Förhandsvisning av märket*/}
+        <View style={styles.sheet}>
+          {motif ? (
+            <StickerPreview motif={motif} width={previewWidth} />
+          ) : images.loading ? (
+            <ActivityIndicator />
+          ) : (
+            <Text style={styles.meta}>Inga motiv att välja bland</Text>
+          )}
         </View>
-      ) : imageList.length === 0 ? (
-        <Text style={styles.noImageText}>
-          {tab === "logos"
-            ? "Filmen har inga loggor."
-            : "Filmen har inga bakgrundsbilder."}
-        </Text>
-      ) : (
-        <FlatList
-          horizontal
-          data={imageList}
-          keyExtractor={(image) => image.file_path}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.thumbs}
-          renderItem={({ item }) => {
-            const selected = motif?.filePath === item.file_path;
-            return (
-              <Pressable
-                onPress={() =>
-                  setSelectedMotif(
-                    toMotif(tab === "logos" ? "logo" : "backdrop", item),
-                  )
-                }
-                accessibilityRole="button"
-                accessibilityState={{ selected }}
-                accessibilityLabel={tab === "logos" ? "Logo" : "Bakgrundsbild"}
-                style={[styles.thumb, selected && styles.thumbSelected]}
-              >
-                <Image
-                  source={{ uri: imageUrl(item.file_path) ?? undefined }}
-                  style={[
-                    styles.thumbImage,
-                    tab === "logos" && styles.thumbLogo,
-                  ]}
-                  resizeMode={tab === "logos" ? "contain" : "cover"}
-                />
-              </Pressable>
-            );
-          }}
-        />
-      )}
-      {/* Filmfakta från getMovieDetails */}
-      <Text style={styles.title}>{movie.title}</Text>
-      <Text style={styles.meta}>
-        {[
-          movie.release_date?.slice(0, 4),
-          movie.runtime ? `${movie.runtime} min` : null,
-          movie.genres.map((g) => g.name).join(", "),
-        ]
-          .filter(Boolean)
-          .join(" · ")}
-      </Text>
-      {movie.tagline ? (
-        <Text style={styles.tagline}>{movie.tagline}</Text>
-      ) : null}
-      {movie.overview ? (
-        <Text style={styles.overview}>{movie.overview}</Text>
-      ) : null}
 
-      <View style={styles.footer}>
+        {/* Bild kategorier bilder/loggor */}
+        <Text style={styles.label}>Välj motiv</Text>
+        <View style={styles.tabs}>
+          <AppButton
+            label={`Bilder (${images.data?.backdrops.length ?? 0})`}
+            selected={tab === "backdrops"}
+            onPress={() => setTab("backdrops")}
+          />
+          <AppButton
+            label={`Loggor (${images.data?.logos.length ?? 0})`}
+            selected={tab === "logos"}
+            onPress={() => setTab("logos")}
+          />
+        </View>
+
+        {/* Bildlista */}
+        {images.loading && !images.data ? (
+          <ActivityIndicator color={colors.textOnDark} />
+        ) : images.error ? (
+          <View style={styles.inlineError}>
+            <Text style={styles.message}>{errorMessage(images.error)}</Text>
+            <Button title="Försök igen" onPress={images.reload} />
+          </View>
+        ) : imageList.length === 0 ? (
+          <Text style={styles.noImageText}>
+            {tab === "logos"
+              ? "Filmen har inga loggor."
+              : "Filmen har inga bakgrundsbilder."}
+          </Text>
+        ) : (
+          <FlatList
+            horizontal
+            data={imageList}
+            keyExtractor={(image) => image.file_path}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.thumbs}
+            renderItem={({ item }) => {
+              const selected = motif?.filePath === item.file_path;
+              return (
+                <Pressable
+                  onPress={() =>
+                    setSelectedMotif(
+                      toMotif(tab === "logos" ? "logo" : "backdrop", item),
+                    )
+                  }
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  accessibilityLabel={tab === "logos" ? "Logga" : "Bild"}
+                  style={[styles.thumb, selected && styles.thumbSelected]}
+                >
+                  <Image
+                    source={{ uri: imageUrl(item.file_path) ?? undefined }}
+                    style={[
+                      styles.thumbImage,
+                      tab === "logos" && styles.thumbLogo,
+                    ]}
+                    resizeMode={tab === "logos" ? "contain" : "cover"}
+                  />
+                </Pressable>
+              );
+            }}
+          />
+        )}
+        {/* Filmfakta från getMovieDetails */}
+        <Text style={styles.title}>{movie.title}</Text>
+        <Text style={styles.meta}>
+          {[
+            movie.release_date?.slice(0, 4),
+            movie.runtime ? `${movie.runtime} min` : null,
+            movie.genres.map((g) => g.name).join(", "),
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </Text>
+        {movie.tagline ? (
+          <Text style={styles.tagline}>{movie.tagline}</Text>
+        ) : null}
+        {movie.overview ? (
+          <Text style={styles.overview}>{movie.overview}</Text>
+        ) : null}
+      </ScrollView>
+
+      <View
+        style={[styles.byFeald, { paddingBottom: spacing.m + insets.bottom }]}
+      >
+        <View style={styles.buyInfo}>
+          <Text style={styles.price}>{formatSek(priceForDesign(design))}</Text>
+          <Text style={styles.buySub}>
+            {inCart > 0 ? `${inCart} st i kundvagnen` : "per styck"}
+          </Text>
+        </View>
         <CartButton
-          title="Till kundvagnen"
-          onPress={() => navigation.navigate("Cart")}
+          title={justAdded ? "Tillagd" : "Lägg i Kundvagnen"}
+          onPress={addToCart}
         />
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   // Skärmen
   screen: { flex: 1, backgroundColor: colors.background },
+  scroll: { flex: 1 },
   container: { padding: spacing.l, gap: spacing.s },
   center: {
     flex: 1,
@@ -262,5 +314,18 @@ const styles = StyleSheet.create({
   },
   thumbLogo: { backgroundColor: colors.logoBackground },
 
-  footer: { marginTop: spacing.xl, alignItems: "center" },
+  // "Köpfältet längst ner"
+  byFeald: {
+    flexDirection: "row", // pris till vänster, knapp till höger
+    alignItems: "center",
+    gap: spacing.m,
+    paddingHorizontal: spacing.l,
+    paddingTop: spacing.m,
+    backgroundColor: colors.surface,
+    borderTopWidth: 2,
+    borderTopColor: colors.accent,
+  },
+  buyInfo: { flex: 1 }, // tar utrymmet som blir över, så knappen hamnar längst till höger
+  price: { fontSize: fontSize.title, fontWeight: "bold", color: colors.text },
+  buySub: { fontSize: fontSize.small, color: colors.textSecondary },
 });
