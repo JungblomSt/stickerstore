@@ -9,37 +9,16 @@ const Stack = createNativeStackNavigator<NavigationList>();
 
 export const Navigator = () => {
   return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="Catalog"
-        component={CatalogScreen}
-        options={{
-          title: "StickerStore",
-          headerStyle: { backgroundColor: colors.background },
-          headerTintColor: colors.textOnDark,
-          headerBackButtonDisplayMode: "minimal",
-        }}
-      />
-      <Stack.Screen
-        name="Design"
-        component={DesignScreen}
-        options={{
-          title: "StickerStore",
-          headerStyle: { backgroundColor: colors.background },
-          headerTintColor: colors.textOnDark,
-          headerBackButtonDisplayMode: "minimal",
-        }}
-      />
-      <Stack.Screen
-        name="Cart"
-        component={CartScreen}
-        options={{
-          title: "StickerStore",
-          headerStyle: { backgroundColor: colors.background },
-          headerTintColor: colors.textOnDark,
-          headerBackButtonDisplayMode: "minimal",
-        }}
-      />
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.background },
+        headerTintColor: colors.textOnDark,
+        headerBackButtonDisplayMode: "minimal",
+      }}
+    >
+      <Stack.Screen name="Catalog" component={CatalogScreen} />
+      <Stack.Screen name="Design" component={DesignScreen} />
+      <Stack.Screen name="Cart" component={CartScreen} />
     </Stack.Navigator>
   );
 };
