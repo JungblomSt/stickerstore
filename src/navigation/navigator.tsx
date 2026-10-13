@@ -18,7 +18,11 @@ export const Navigator = () => {
     >
       <Stack.Screen name="Catalog" component={CatalogScreen} />
       <Stack.Screen name="Design" component={DesignScreen} />
-      <Stack.Screen name="Cart" component={CartScreen} />
+      <Stack.Screen
+        name="Cart"
+        component={CartScreen}
+        options={{ title: "Varukorg" }}
+      />
     </Stack.Navigator>
   );
 };

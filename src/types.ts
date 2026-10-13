@@ -9,7 +9,7 @@ export interface Movie {
   genre_ids: number[];
   vote_average: number;
 }
-// MovieDeatails
+// MovieDetails
 export interface MovieDetails extends Omit<Movie, "genre_ids"> {
   genres: Genre[];
   runtime: number | null;
@@ -41,4 +41,36 @@ export interface PagedResponse<T> {
   results: T[];
   total_pages: number;
   total_results: number;
+}
+// Motif
+export type MotifType = 'backdrop' | 'logo';
+
+export interface Motif {
+  type: MotifType;
+  filePath: string;
+  aspectRatio: number;
+}
+
+// StickerDesign
+export type StickerShape = 'rectangle' | 'rounded' | 'square' | 'circle';
+export type StickerSize = 'S' | 'M' | 'L';
+
+export interface StickerDesign {
+  shape: StickerShape;
+  size: StickerSize;
+  frame: {
+    enabled: boolean;
+    color: string;
+  };
+}
+
+// CartItem
+export interface CartItem {
+  id: string;
+  movieId: number;
+  movieTitle: string;
+  motif: Motif;
+  design: StickerDesign;
+  unitPriceSek: number;
+  quantity: number;
 }
