@@ -1,7 +1,7 @@
 import { useState, useEffect, DependencyList, useCallback, useRef } from "react";
 
 const sameDeps = (a: DependencyList, b: DependencyList) =>
-  a.length !== b.length && a.every((value, index) => Object.is(value, b[index]));
+  a.length === b.length && a.every((value, index) => Object.is(value, b[index]));
 
 export const useFetch = <T>(
     fetcher: ((signal: AbortSignal) => Promise<T>) | null,
@@ -9,7 +9,7 @@ export const useFetch = <T>(
 ) => {
   const [result, setResult] = useState<{ deps: DependencyList; data: T } | null>(null);
   const [loading, setLoading] = useState(fetcher !== null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown | null>(null);
   const [reloadKey, setReloadKey] = useState<number>(0);
 
   const fetcherRef = useRef(fetcher);
@@ -35,7 +35,7 @@ export const useFetch = <T>(
         if (!controller.signal.aborted) setResult({ deps: requestDeps, data: response });
       })
       .catch((err) => {
-        if (!controller.signal.aborted) setError(err.message);
+        if (!controller.signal.aborted) setError(err);
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false);
