@@ -63,6 +63,18 @@ export default function CartScreen({ navigation }: CartScreenProps) {
           </View>
         )}
       />
+      <View style={styles.navButton}>
+        <CartButton
+          title="Fortsätt handla"
+          onPress={() => navigation.navigate("Catalog")}
+        />
+        <CartButton
+          title="Betala"
+          onPress={() =>
+            alert("Det går inte att handla ännu, Affären har inte öppnat")
+          }
+        />
+      </View>
 
       <View
         style={[styles.totalBar, { paddingBottom: spacing.m + insets.bottom }]}
@@ -113,6 +125,11 @@ const styles = StyleSheet.create({
     fontSize: fontSize.body,
     fontWeight: "bold",
     color: colors.text,
+  },
+  navButton: {
+    flexDirection: "row",
+    padding: spacing.l,
+    justifyContent: "space-evenly",
   },
   total: { fontSize: fontSize.title, fontWeight: "bold", color: colors.text },
   totalBar: {

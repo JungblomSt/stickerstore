@@ -98,12 +98,6 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
           );
         }}
       />
-      <View style={styles.footer}>
-        <CartButton
-          title="Till kundvagnen"
-          onPress={() => navigation.navigate("Cart")}
-        />
-      </View>
     </View>
   );
 }
