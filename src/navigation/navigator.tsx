@@ -16,6 +16,7 @@ export const Navigator = () => {
         headerTintColor: colors.textOnDark,
         headerBackButtonDisplayMode: "minimal",
         headerRight: () => <HeaderActions />,
+        headerRightBackgroundVisible: false,
       }}
     >
       <Stack.Screen
@@ -31,7 +32,7 @@ export const Navigator = () => {
       <Stack.Screen
         name="Cart"
         component={CartScreen}
-        options={{ title: "Varukorg", headerRight: () => null }}
+        options={{ title: "Varukorg" }}
       />
     </Stack.Navigator>
   );

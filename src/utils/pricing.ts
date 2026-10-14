@@ -1,4 +1,4 @@
-import type { CartItem, Motif, StickerDesign } from "../types";
+import type { CartItem, Currency, Motif, Rates, StickerDesign } from "../types";
 
 const SIZE_PRICE_SEK = { S: 20, M: 30, L: 40 } as const;
 export const FRAME_PRICE_SEK = 10;
@@ -23,5 +23,16 @@ export function formatSek(amount: number): string {
     return new Intl.NumberFormat("sv-SE", { style: "currency", currency: "SEK" }).format(amount);
   } catch {
     return `${amount.toFixed(2)} kr`;
+  }
+}
+
+export function formatPrice(amountSek: number, currency: Currency, rates: Rates | null): string {
+  const rate = rates?.[currency];
+  if (currency === "SEK" || !rate) return formatSek(amountSek);
+
+  try {
+    return new Intl.NumberFormat("sv-SE", { style: "currency", currency }).format(amountSek * rate);
+  } catch {
+    return `${(amountSek * rate).toFixed(2)} ${currency}`;
   }
 }

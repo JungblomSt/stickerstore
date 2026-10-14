@@ -4,32 +4,43 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { NavigationList } from "../navigation/types";
 import { selectCartCount, useAppSelector } from "../store/hooks";
 import { colors, fontSize, spacing } from "../theme";
+import { CurrencyPicker } from "./CurrencyPicker";
+import { Ionicons } from "@expo/vector-icons";
 
 export function HeaderActions() {
   const navigation = useNavigation<NativeStackNavigationProp<NavigationList>>();
   const count = useAppSelector(selectCartCount);
 
   return (
-    <Pressable
-      onPress={() => navigation.navigate("Cart")}
-      style={styles.button}
-      // Träffytan är större än själva knappen, så att det blir lättare att trycka på den.
-      hitSlop={8}
-      accessibilityRole="button"
-      accessibilityLabel={`Kundvagn, ${count}`}
-    >
-      <Text style={styles.text}>Kundvagn</Text>
-      {count > 0 && (
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{count}</Text>
-        </View>
-      )}
-    </Pressable>
+    <View style={styles.row}>
+      <CurrencyPicker />
+      <Pressable
+        onPress={() => navigation.navigate("Cart")}
+        style={styles.button}
+        // Träffytan är större än själva knappen, så att det blir lättare att trycka på den.
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel={`Kundvagn, ${count}`}
+      >
+        <Ionicons name="cart-outline" size={24} color={colors.text} />
+        {/* <Text style={styles.text}>Kundvagn</Text> */}
+        {count > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText} maxFontSizeMultiplier={1.2}>
+              {" "}
+              {count > 99 ? "99+" : count}
+            </Text>
+          </View>
+        )}
+      </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
+    minWidth: 44,
+    minHeight: 44,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
@@ -37,12 +48,16 @@ const styles = StyleSheet.create({
     borderRadius: 999, // Gör knappen rund
     paddingHorizontal: spacing.m,
     paddingVertical: spacing.xs,
+    borderWidth: 2,
+    borderColor: colors.cut,
+    padding: spacing.s,
   },
+  row: { flexDirection: "row", alignItems: "center", gap: spacing.s },
   text: { fontWeight: "bold", color: colors.text, fontSize: fontSize.body },
   badge: {
     minWidth: 20,
     height: 20,
-    borderRadius: 10,
+    borderRadius: 20,
     paddingHorizontal: spacing.xs,
     alignItems: "center",
     justifyContent: "center",
@@ -50,7 +65,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: colors.surface,
-    fontSize: fontSize.small,
+    fontSize: fontSize.body,
     fontWeight: "bold",
   },
 });

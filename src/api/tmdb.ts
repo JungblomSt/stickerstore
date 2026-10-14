@@ -1,16 +1,9 @@
 import { Movie, PagedResponse, MovieDetails, MovieImages } from '../types';
+import { ApiError } from './errors';
+
 
 const TMDB_URL = 'https://api.themoviedb.org/3';
 const TMDB_TOKEN = process.env.EXPO_PUBLIC_TMDB_TOKEN ?? '';
-
-export class ApiError extends Error {
-    status: number | 'FETCH_ERROR';
-    
-    constructor(status: number | 'FETCH_ERROR', message: string) {
-        super(message);
-        this.status = status;
-    }
-}
 
 async function fetchFromTmdb<T>(path: string, signal?: AbortSignal): Promise<T> {
   let response: Response;

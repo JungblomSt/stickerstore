@@ -74,3 +74,8 @@ export interface CartItem {
   unitPriceSek: number;
   quantity: number;
 }
+
+// Currency
+export type Currency = string;
+export type Rates = Record<Currency, number>;
+export type CurrencyNames = Record<Currency, string>;

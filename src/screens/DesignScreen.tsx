@@ -24,6 +24,7 @@ import StickerPreview from "../components/StickerPreview";
 import { addSticker } from "../store/cartSlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { cartItemId, formatSek, priceForDesign } from "../utils/pricing";
+import { usePrice } from "../hooks/usePrice";
 
 type Tab = "backdrops" | "logos";
 
@@ -48,6 +49,7 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
   const { width: screenWidth } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
+  const price = usePrice();
 
   // Två anrop som körs samtidigt: filmens fakta och filmens bilder.
   const details = useFetch(
@@ -223,7 +225,7 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
         style={[styles.byFeald, { paddingBottom: spacing.m + insets.bottom }]}
       >
         <View style={styles.buyInfo}>
-          <Text style={styles.price}>{formatSek(priceForDesign(design))}</Text>
+          <Text style={styles.price}>{price(priceForDesign(design))}</Text>
           <Text style={styles.buySub}>
             {inCart > 0 ? `${inCart} st i kundvagnen` : "per styck"}
           </Text>

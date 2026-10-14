@@ -1,4 +1,4 @@
-import { ApiError } from '../api/tmdb';
+import { ApiError } from '../api/errors';
 
 export function errorMessage(error: unknown): string {
   if (error instanceof ApiError) {
