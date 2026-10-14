@@ -2,13 +2,15 @@
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { RootState } from "./index";
+import { Currency } from "../types";
 
-const KEY = "stickerstore.cart";
+const CART_KEY = "stickerstore.cart";
+const CURRENCY_KEY = "stickerstore.currency"
 
 // Läs av kundvagnen vid start, tom om trasig data
 export async function loadCart(): Promise<RootState["cart"] | undefined> {
     try {
-        const json = await AsyncStorage.getItem(KEY);
+        const json = await AsyncStorage.getItem(CART_KEY);
         if (!json) return undefined;
 
         const data = JSON.parse(json);
@@ -22,5 +24,16 @@ export async function loadCart(): Promise<RootState["cart"] | undefined> {
 }
 // spara kundvagn som JSON
 export function saveCart(cart: RootState["cart"]) {
-    AsyncStorage.setItem(KEY, JSON.stringify(cart)).catch(() => {});
+    AsyncStorage.setItem(CART_KEY, JSON.stringify(cart)).catch(() => {});
+}
+
+export async function loadCurrency() : Promise<RootState["currency"] | undefined> {
+    try {
+        const saved = await AsyncStorage.getItem(CURRENCY_KEY);
+        // Saknad valuta/kurs = SEK
+        return saved && /^[A-Z]{3}$/.test(saved) ? { selected: saved } : undefined;
+    } catch {
+        return undefined;
+    }
+    
 }

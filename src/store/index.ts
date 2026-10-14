@@ -1,8 +1,10 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import cartReducer from "./cartSlice";
+import currencyReducer from "./currencySlice";
 
 const rootReducer = combineReducers({
   cart: cartReducer,
+  currency: currencyReducer,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

@@ -7,11 +7,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StickerPreview from "../components/StickerPreview";
 import { removeSticker } from "../store/cartSlice";
 import { cartTotalSek, formatSek } from "../utils/pricing";
+import { CurrencyPicker } from "../components/CurrencyPicker";
+import { usePrice } from "../hooks/usePrice";
 
 export default function CartScreen({ navigation }: CartScreenProps) {
   const items = useAppSelector((state) => state.cart.items);
   const dispatch = useAppDispatch();
   const insets = useSafeAreaInsets();
+  const price = usePrice();
 
   if (items.length === 0) {
     return (
@@ -58,7 +61,7 @@ export default function CartScreen({ navigation }: CartScreenProps) {
             </View>
 
             <Text style={styles.linePrice}>
-              {formatSek(item.unitPriceSek * item.quantity)}
+              {price(item.unitPriceSek * item.quantity)}
             </Text>
           </View>
         )}
@@ -80,7 +83,7 @@ export default function CartScreen({ navigation }: CartScreenProps) {
         style={[styles.totalBar, { paddingBottom: spacing.m + insets.bottom }]}
       >
         <Text style={styles.totalLabel}>Totalt</Text>
-        <Text style={styles.total}>{formatSek(cartTotalSek(items))}</Text>
+        <Text style={styles.total}>{price(cartTotalSek(items))}</Text>
       </View>
     </View>
   );
