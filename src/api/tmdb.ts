@@ -26,11 +26,13 @@ async function fetchFromTmdb<T>(path: string, signal?: AbortSignal): Promise<T> 
   return (await response.json()) as T;
 }
 
-export async function getPopularMovies(signal?: AbortSignal): Promise<Movie[]> {
-  const data = await fetchFromTmdb<PagedResponse<Movie>>(
-    '/movie/popular?language=sv-SE&region=SE',
-    signal,
-  );
+export async function getMovies(search = '', signal?: AbortSignal): Promise<Movie[]> {
+  const term = search.trim();
+  const path = term
+    ? `/search/movie?query=${encodeURIComponent(term)}&language=sv-SE&region=SE`
+    : '/movie/popular?language=sv-SE&region=SE';
+ 
+  const data = await fetchFromTmdb<PagedResponse<Movie>>(path, signal);
   return data.results;
 }
 
@@ -46,19 +48,3 @@ export function imageUrl(path: string | null, size: 'w300' | 'w780' = 'w300'): s
     if (!path) return null;
     return `https://image.tmdb.org/t/p/${size}${path}`;
     }
-
-export async function getMovies(
-  search: string = '',
-  signal?: AbortSignal
-): Promise<Movie[]> {
-  const term = search.trim();
-  if (!term) {
-    return getPopularMovies(signal);
-  }
-  
-const data = await fetchFromTmdb<PagedResponse<Movie>>(
-    `/search/movie?query=${encodeURIComponent(term)}&language=sv-SE&region=SE`,
-    signal,
-  );
-  return data.results;  
-}
