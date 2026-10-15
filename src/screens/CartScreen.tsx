@@ -6,8 +6,7 @@ import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StickerPreview from "../components/StickerPreview";
 import { removeSticker } from "../store/cartSlice";
-import { cartTotalSek, formatSek } from "../utils/pricing";
-import { CurrencyPicker } from "../components/CurrencyPicker";
+import { cartTotalSek } from "../utils/pricing";
 import { usePrice } from "../hooks/usePrice";
 
 export default function CartScreen({ navigation }: CartScreenProps) {
@@ -39,7 +38,7 @@ export default function CartScreen({ navigation }: CartScreenProps) {
               accessibilityLabel={`Öppna ${item.movieTitle}`}
               style={styles.thumb}
             >
-              <StickerPreview motif={item.motif} width={80} />
+              <StickerPreview motif={item.motif} maxWidth={80} maxHight={68} />
             </Pressable>
 
             <View style={styles.info}>
@@ -49,6 +48,7 @@ export default function CartScreen({ navigation }: CartScreenProps) {
               <Text style={styles.desc}>
                 {item.motif.type === "logo" ? "Logga" : "Bild"} ·{" "}
                 {item.quantity} st
+                {", Storlek: "} {item.design.size}
               </Text>
               <Pressable
                 onPress={() => dispatch(removeSticker(item.id))}

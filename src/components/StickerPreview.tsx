@@ -5,12 +5,20 @@ import type { Motif } from "../types";
 
 type Props = {
   motif: Motif;
-  width: number;
+  maxWidth: number;
+  maxHight: number;
 };
 
-export default function StickerPreview({ motif, width }: Props) {
+export default function StickerPreview({ motif, maxWidth, maxHight }: Props) {
   const isLogo = motif.type === "logo";
-  const height = Math.round(width / motif.aspectRatio);
+
+  const fitsByWidth = maxWidth / motif.aspectRatio <= maxHight;
+  const width = fitsByWidth
+    ? maxWidth
+    : Math.round(maxHight * motif.aspectRatio);
+  const height = fitsByWidth
+    ? Math.round(maxWidth / motif.aspectRatio)
+    : maxHight;
 
   return (
     <View style={[styles.sticker, isLogo && styles.logo, { width, height }]}>
@@ -34,6 +42,6 @@ const styles = StyleSheet.create({
     // Android-skugga
     elevation: 5,
   },
-  logo: { backgroundColor: colors.logoBackground, padding: spacing.m },
+  logo: { backgroundColor: colors.logoBackground },
   image: { flex: 1 },
 });

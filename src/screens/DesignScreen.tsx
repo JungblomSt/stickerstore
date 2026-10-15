@@ -19,7 +19,13 @@ import { errorMessage } from "../utils/errorMessage";
 import { colors, fontSize, spacing } from "../theme";
 import { CartButton } from "../components/CartButton";
 import { AppButton } from "../components/AppButton";
-import type { Motif, MotifType, TmdbImage, StickerDesign } from "../types";
+import type {
+  Motif,
+  MotifType,
+  TmdbImage,
+  StickerDesign,
+  StickerSize,
+} from "../types";
 import StickerPreview from "../components/StickerPreview";
 import { addSticker } from "../store/cartSlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -34,6 +40,11 @@ const DEFAULT_DESIGN: StickerDesign = {
   size: "M",
   frame: { enabled: false, color: colors.accent },
 };
+const SIZES: { value: StickerSize; label: string }[] = [
+  { value: "S", label: "S · 5 cm" },
+  { value: "M", label: "M · 7 cm" },
+  { value: "L", label: "L · 11 cm" },
+];
 
 // gör TMDB-bilden till appens Motif
 function toMotif(type: MotifType, image: TmdbImage): Motif {
@@ -63,6 +74,7 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
 
   const [tab, setTab] = useState<Tab>("backdrops");
   const [selectedMotif, setSelectedMotif] = useState<Motif | null>(null);
+  const [design, setDesign] = useState<StickerDesign>(DEFAULT_DESIGN);
 
   const cartItems = useAppSelector((state) => state.cart.items);
 
@@ -105,15 +117,15 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
       : null;
   const motif = selectedMotif ?? defaultMotif;
 
-  const design = DEFAULT_DESIGN;
-
   const inCart = motif
     ? (cartItems.find((item) => item.id === cartItemId(movieId, motif, design))
         ?.quantity ?? 0)
     : 0;
 
+  const SIZE_SCALE = { S: 0.6, M: 0.8, L: 1 } as const;
   // Förhandsvisningen får plats med marginaler, men blir aldrig bredare än 420.
-  const previewWidth = Math.min(screenWidth - 64, 420);
+  const previewWidth =
+    Math.min(screenWidth - 64, 420) * SIZE_SCALE[design.size];
 
   const addToCart = () => {
     if (!motif) return;
@@ -131,7 +143,11 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
         {/* Förhandsvisning av märket*/}
         <View style={styles.sheet}>
           {motif ? (
-            <StickerPreview motif={motif} width={previewWidth} />
+            <StickerPreview
+              motif={motif}
+              maxWidth={previewWidth}
+              maxHight={previewWidth}
+            />
           ) : images.loading ? (
             <ActivityIndicator />
           ) : (
@@ -202,6 +218,18 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
             }}
           />
         )}
+        {/* Välj storlek */}
+        <Text style={styles.label}>Välj storlek</Text>
+        <View style={styles.tabs}>
+          {SIZES.map(({ value, label }) => (
+            <AppButton
+              key={value}
+              label={label}
+              selected={design.size === value}
+              onPress={() => setDesign((prev) => ({ ...prev, size: value }))}
+            />
+          ))}
+        </View>
         {/* Filmfakta från getMovieDetails */}
         <Text style={styles.title}>{movie.title}</Text>
         <Text style={styles.meta}>
