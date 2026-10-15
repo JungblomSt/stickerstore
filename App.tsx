@@ -5,7 +5,12 @@ import { Provider } from "react-redux";
 import { makeStore, type AppStore } from "./src/store";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import { loadCart, saveCart } from "./src/store/persist";
+import {
+  loadCart,
+  loadCurrency,
+  saveCart,
+  saveCurrency,
+} from "./src/store/persist";
 import { colors } from "./src/theme";
 import { ActivityIndicator, View } from "react-native";
 
@@ -13,17 +18,28 @@ export default function App() {
   const [store, setStore] = useState<AppStore | null>(null);
 
   useEffect(() => {
-    loadCart().then((cart) => {
-      const s = makeStore(cart ? { cart } : undefined);
-      let last = s.getState().cart;
-      s.subscribe(() => {
-        const cart = s.getState().cart;
+    Promise.all([loadCart(), loadCurrency()]).then(([cart, currency]) => {
+      const s = makeStore({
+        ...(cart && { cart }),
+        ...(currency && { currency }),
+      });
 
-        if (cart !== last) {
-          last = cart;
+      let lastCart = s.getState().cart;
+      let lastCurrency = s.getState().currency;
+
+      s.subscribe(() => {
+        const { cart, currency } = s.getState();
+
+        if (cart !== lastCart) {
+          lastCart = cart;
           saveCart(cart);
         }
+        if (currency !== lastCurrency) {
+          lastCurrency = currency;
+          saveCurrency(currency);
+        }
       });
+
       setStore(s);
     });
   }, []);

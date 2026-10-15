@@ -1,8 +1,8 @@
 // Spara lokalt
 
+// AsyncStorage är React Natives variant av localStoreage
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { RootState } from "./index";
-import { Currency } from "../types";
 
 const CART_KEY = "stickerstore.cart";
 const CURRENCY_KEY = "stickerstore.currency"
@@ -22,7 +22,7 @@ export async function loadCart(): Promise<RootState["cart"] | undefined> {
         return undefined;
     }
 }
-// spara kundvagn som JSON
+// spara kundvagn som JSON string
 export function saveCart(cart: RootState["cart"]) {
     AsyncStorage.setItem(CART_KEY, JSON.stringify(cart)).catch(() => {});
 }
@@ -35,5 +35,7 @@ export async function loadCurrency() : Promise<RootState["currency"] | undefined
     } catch {
         return undefined;
     }
-    
+}
+export function saveCurrency(currency: RootState["currency"]) {
+    AsyncStorage.setItem(CURRENCY_KEY, currency.selected).catch(() => {});
 }
