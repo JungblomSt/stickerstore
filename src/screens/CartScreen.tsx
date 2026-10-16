@@ -38,7 +38,12 @@ export default function CartScreen({ navigation }: CartScreenProps) {
               accessibilityLabel={`Öppna ${item.movieTitle}`}
               style={styles.thumb}
             >
-              <StickerPreview motif={item.motif} maxWidth={80} maxHight={68} />
+              <StickerPreview
+                motif={item.motif}
+                maxWidth={80}
+                maxHight={68}
+                frame={item.design.frame}
+              />
             </Pressable>
 
             <View style={styles.info}>

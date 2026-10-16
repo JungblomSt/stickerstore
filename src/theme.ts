@@ -47,3 +47,15 @@ export const colors = {
   logoBackground: palette.transparent, // bakgrund för transparenta logotyper
   danger: "#B3261E",
 } as const;
+
+export const frameColors = [
+  '#FFFFFF',
+  '#18263A',
+  '#FFC532',
+  '#E4572E',
+  '#E83F8B',
+  '#7B4FD6',
+  '#2E86DE',
+  '#17A589',
+  '#6BBF3B',
+];
