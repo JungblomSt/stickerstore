@@ -52,7 +52,7 @@ export interface Motif {
 }
 
 // StickerDesign
-export type StickerShape = 'rectangle' | 'rounded' | 'square' | 'circle';
+export type StickerShape = 'rectangle' | 'rounded' | 'square' | 'circle'; // används inte ännu
 export type StickerSize = 'S' | 'M' | 'L';
 
 export interface StickerDesign {
@@ -78,4 +78,3 @@ export interface CartItem {
 // Currency
 export type Currency = string;
 export type Rates = Record<Currency, number>;
-export type CurrencyNames = Record<Currency, string>;

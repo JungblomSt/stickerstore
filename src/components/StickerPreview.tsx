@@ -1,6 +1,6 @@
 import { Image, StyleSheet, View } from "react-native";
 import { imageUrl } from "../api/tmdb";
-import { colors, spacing } from "../theme";
+import { colors } from "../theme";
 import type { Motif, StickerDesign } from "../types";
 
 type Props = {

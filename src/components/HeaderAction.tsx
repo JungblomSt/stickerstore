@@ -23,11 +23,9 @@ export function HeaderActions() {
         accessibilityLabel={`Kundvagn, ${count}`}
       >
         <Ionicons name="cart-outline" size={24} color={colors.text} />
-        {/* <Text style={styles.text}>Kundvagn</Text> */}
         {count > 0 && (
           <View style={styles.badge}>
             <Text style={styles.badgeText} maxFontSizeMultiplier={1.2}>
-              {" "}
               {count > 99 ? "99+" : count}
             </Text>
           </View>
@@ -53,7 +51,6 @@ const styles = StyleSheet.create({
     padding: spacing.s,
   },
   row: { flexDirection: "row", alignItems: "center", gap: spacing.s },
-  text: { fontWeight: "bold", color: colors.text, fontSize: fontSize.body },
   badge: {
     minWidth: 20,
     height: 20,
@@ -65,7 +62,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: colors.surface,
-    fontSize: fontSize.body,
+    fontSize: fontSize.small,
     fontWeight: "bold",
   },
 });

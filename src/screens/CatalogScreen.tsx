@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  Button,
   ActivityIndicator,
   FlatList,
   Image,
@@ -16,6 +15,7 @@ import { useMovies } from "../hooks/useMovies";
 import { useDebouncedValue } from "../utils/helpers";
 import { errorMessage } from "../utils/errorMessage";
 import { colors, fontSize, spacing } from "../theme";
+import { AppButton } from "../components/AppButton";
 
 export default function CatalogScreen({ navigation }: CatalogScreenProps) {
   const [search, setSearch] = useState("");
@@ -27,7 +27,7 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
     return (
       <View style={styles.center}>
         <Text style={styles.message}>{errorMessage(error)}</Text>
-        <Button title="Försök igen" onPress={reload} />
+        <AppButton title="Försök igen" onPress={reload} />
       </View>
     );
   }
@@ -38,7 +38,7 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
       return (
         <View style={styles.empty}>
           <Text style={styles.message}>{errorMessage(error)}</Text>
-          <Button title="Försök igen" onPress={reload} />
+          <AppButton title="Försök igen" onPress={reload} />
         </View>
       );
     if (movies && debouncedSearch)
@@ -160,5 +160,4 @@ const styles = StyleSheet.create({
     color: colors.textOnDark,
   },
   empty: { flex: 1, alignItems: "center", justifyContent: "center" },
-  footer: { marginTop: spacing.m, alignItems: "center" },
 });
