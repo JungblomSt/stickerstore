@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Button,
   FlatList,
   Image,
   Pressable,
@@ -29,12 +28,7 @@ import type {
 import StickerPreview from "../components/StickerPreview";
 import { addSticker } from "../store/cartSlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import {
-  cartItemId,
-  formatSek,
-  FRAME_PRICE_SEK,
-  priceForDesign,
-} from "../utils/pricing";
+import { cartItemId, FRAME_PRICE_SEK, priceForDesign } from "../utils/pricing";
 import { usePrice } from "../hooks/usePrice";
 
 type Tab = "backdrops" | "logos";
@@ -43,7 +37,7 @@ type Tab = "backdrops" | "logos";
 const DEFAULT_DESIGN: StickerDesign = {
   shape: "rounded",
   size: "M",
-  frame: { enabled: false, color: colors.accent },
+  frame: { enabled: false, color: frameColors[0] },
 };
 const SIZES: { value: StickerSize; label: string }[] = [
   { value: "S", label: "S · 5 cm" },
@@ -184,7 +178,7 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
         ) : images.error ? (
           <View style={styles.inlineError}>
             <Text style={styles.message}>{errorMessage(images.error)}</Text>
-            <Button title="Försök igen" onPress={images.reload} />
+            <AppButton title="Försök igen" onPress={images.reload} />
           </View>
         ) : imageList.length === 0 ? (
           <Text style={styles.noImageText}>

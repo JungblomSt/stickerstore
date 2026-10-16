@@ -25,9 +25,12 @@ Run lint and typecheck before declaring any task done.
 
 ## Navigation & Routing
 
-- Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
-- Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
-- Docs: https://docs.expo.dev/router/introduction.md
+- This project uses **React Navigation** (native stack), not Expo Router. Do not add `expo-router` or a `src/app/` folder.
+- The navigator is defined in `src/navigation/navigator.tsx`. Screens live in `src/screens/` and are registered there with `Stack.Screen`.
+- Route names and params are typed in `src/navigation/types.ts` (`NavigationList`). When adding a screen, add it to `NavigationList` and export a matching `…ScreenProps` type.
+- Navigate with `navigation.navigate("Design", { movieId })` from screen props, or `useNavigation<NativeStackNavigationProp<NavigationList>>()` in components outside screens.
+- Shared header options (colors, back button, `HeaderActions` with currency picker and cart icon) are set in `screenOptions` on the navigator. `headerRightBackgroundVisible: false` removes the iOS 26 glass background behind header buttons.
+- Docs: https://reactnavigation.org/docs/native-stack-navigator
 
 ## Building with EAS
 

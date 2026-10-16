@@ -1,4 +1,4 @@
-import { CurrencyNames, Rates } from "../types";
+import { Rates } from "../types";
 import { ApiError } from "./errors";
 
 
@@ -23,9 +23,4 @@ async function fetchFromFrankfurter<T>(path: string, signal?: AbortSignal): Prom
 export async function getRates(signal?: AbortSignal): Promise<Rates> {
   const data = await fetchFromFrankfurter<{ rates: Rates }>("/latest?base=SEK", signal);
   return { SEK: 1, ...data.rates };
-}
-
-// Namn på valutor
-export async function getCurrencyNames(signal?: AbortSignal): Promise<CurrencyNames> {
-  return fetchFromFrankfurter<CurrencyNames>("/currencies", signal);
 }

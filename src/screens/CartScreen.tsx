@@ -5,9 +5,14 @@ import { AppButton } from "../components/AppButton";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StickerPreview from "../components/StickerPreview";
-import { removeSticker } from "../store/cartSlice";
+import {
+  removeSticker,
+  increaseQuantity,
+  decreaseQuantity,
+} from "../store/cartSlice";
 import { cartTotalSek } from "../utils/pricing";
 import { usePrice } from "../hooks/usePrice";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function CartScreen({ navigation }: CartScreenProps) {
   const items = useAppSelector((state) => state.cart.items);
@@ -51,18 +56,56 @@ export default function CartScreen({ navigation }: CartScreenProps) {
                 {item.movieTitle}
               </Text>
               <Text style={styles.desc}>
-                {item.motif.type === "logo" ? "Logga" : "Bild"} ·{" "}
-                {item.quantity} st
-                {", Storlek: "} {item.design.size}
+                {item.motif.type === "logo" ? "Logga" : "Bild"}
+                {" - Storlek: "} {item.design.size}
               </Text>
-              <Pressable
-                onPress={() => dispatch(removeSticker(item.id))}
-                hitSlop={8}
-                accessibilityRole="button"
-                accessibilityLabel={`Ta bort ${item.movieTitle}`}
-              >
-                <Text style={styles.remove}>Ta bort</Text>
-              </Pressable>
+              <View style={styles.actions}>
+                <View style={styles.stepper}>
+                  <Pressable
+                    onPress={() => dispatch(decreaseQuantity(item.id))}
+                    disabled={item.quantity <= 1}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Minska antal ${item.movieTitle}`}
+                    style={({ pressed }) => [
+                      styles.stepButton,
+                      item.quantity <= 1 && styles.stepDisabled,
+                      pressed && styles.stepPressed,
+                    ]}
+                  >
+                    <Ionicons name="remove" size={18} color={colors.text} />
+                  </Pressable>
+
+                  <Text
+                    style={styles.quantity}
+                    accessibilityLabel={`${item.quantity} stycken`}
+                  >
+                    {item.quantity}
+                  </Text>
+
+                  <Pressable
+                    onPress={() => dispatch(increaseQuantity(item.id))}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Öka antal ${item.movieTitle}`}
+                    style={({ pressed }) => [
+                      styles.stepButton,
+                      pressed && styles.stepPressed,
+                    ]}
+                  >
+                    <Ionicons name="add" size={18} color={colors.text} />
+                  </Pressable>
+                </View>
+
+                <Pressable
+                  onPress={() => dispatch(removeSticker(item.id))}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Ta bort ${item.movieTitle}`}
+                >
+                  <Text style={styles.remove}>Ta bort</Text>
+                </Pressable>
+              </View>
             </View>
 
             <Text style={styles.linePrice}>
@@ -128,6 +171,35 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     fontWeight: "bold",
     color: colors.danger,
+  },
+  // + - ta bort
+  actions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.l,
+    marginTop: spacing.xs,
+  },
+  stepper: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.s,
+  },
+  stepButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.accent,
+  },
+  stepPressed: { opacity: 0.7 },
+  stepDisabled: { opacity: 0.35 },
+  quantity: {
+    minWidth: 24,
+    textAlign: "center",
+    fontSize: fontSize.body,
+    fontWeight: "bold",
+    color: colors.text,
   },
   linePrice: {
     fontSize: fontSize.body,

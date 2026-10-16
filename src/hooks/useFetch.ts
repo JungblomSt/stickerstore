@@ -17,7 +17,6 @@ export const useFetch = <T>(
 
   const enabled = fetcher !== null;
 
-
   useEffect(() => {
     const currentFetcher = fetcherRef.current;
     if (!currentFetcher) {
@@ -49,7 +48,6 @@ export const useFetch = <T>(
   }, []);
 
   const data = result?.data ?? null;
-  const currentData = result?.deps && sameDeps(result.deps, deps) ? result.data : null;
 
-  return { data, currentData, loading, error, reload };
+  return { data, loading, error, reload };
 };

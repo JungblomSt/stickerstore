@@ -1,20 +1,3 @@
-export const colorsUnused = {
-  //AI
-  backing: "#DCE6E8", // skyddspapperet bakom märkena
-  sheet: "#EEF3F4", // lite ljusare yta för paneler
-  vinyl: "#FFFFFF", // själva klistermärket
-  ink: "#18263A", // text och konturer
-  inkSoft: "#56657A",
-  ticket: "#D1AC00", // knappar och markeringar
-  cut: "#8FA3AE", // streckad "skärlinje"
-  danger: "#B3261E",
-  //Coolors.co
-  inkBlack: "#0C1618",
-  pineTeal: "#004643",
-  cornSilk: "#FAF4D3",
-  metallicGold: "#D1AC00",
-  peachGlow: "#F6BE9A",
-};
 
 export const spacing = { xs: 4, s: 8, m: 12, l: 16, xl: 24 };
 
@@ -33,6 +16,7 @@ const palette = {
   metallicGold: "#D1AC00",
   peachGlow: "#F6BE9A",
   transparent: "transparent",
+  danger: "#B3261E",
 };
 
 export const colors = {
@@ -45,7 +29,7 @@ export const colors = {
   accent: palette.metallicGold,   // knappar och markeringar
   cut: palette.peachGlow,         // skärlinjer, platshållare
   logoBackground: palette.transparent, // bakgrund för transparenta logotyper
-  danger: "#B3261E",
+  danger: palette.danger,
 } as const;
 
 export const frameColors = [
