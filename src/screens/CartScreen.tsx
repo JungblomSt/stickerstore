@@ -1,7 +1,7 @@
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import type { CartScreenProps } from "../navigation/types";
 import { colors, fontSize, spacing } from "../theme";
-import { CartButton } from "../components/CartButton";
+import { AppButton } from "../components/AppButton";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StickerPreview from "../components/StickerPreview";
@@ -38,7 +38,12 @@ export default function CartScreen({ navigation }: CartScreenProps) {
               accessibilityLabel={`Öppna ${item.movieTitle}`}
               style={styles.thumb}
             >
-              <StickerPreview motif={item.motif} maxWidth={80} maxHight={68} />
+              <StickerPreview
+                motif={item.motif}
+                maxWidth={80}
+                maxHight={68}
+                frame={item.design.frame}
+              />
             </Pressable>
 
             <View style={styles.info}>
@@ -67,11 +72,11 @@ export default function CartScreen({ navigation }: CartScreenProps) {
         )}
       />
       <View style={styles.navButton}>
-        <CartButton
+        <AppButton
           title="Fortsätt handla"
           onPress={() => navigation.navigate("Catalog")}
         />
-        <CartButton
+        <AppButton
           title="Betala"
           onPress={() =>
             alert("Det går inte att handla ännu, Affären har inte öppnat")

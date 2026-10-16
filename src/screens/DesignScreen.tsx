@@ -10,14 +10,14 @@ import {
   Text,
   useWindowDimensions,
   View,
+  Switch,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getMovieDetails, getMovieImages, imageUrl } from "../api/tmdb";
 import { useFetch } from "../hooks/useFetch";
 import type { DesignScreenProps } from "../navigation/types";
 import { errorMessage } from "../utils/errorMessage";
-import { colors, fontSize, spacing } from "../theme";
-import { CartButton } from "../components/CartButton";
+import { colors, fontSize, frameColors, spacing } from "../theme";
 import { AppButton } from "../components/AppButton";
 import type {
   Motif,
@@ -29,7 +29,12 @@ import type {
 import StickerPreview from "../components/StickerPreview";
 import { addSticker } from "../store/cartSlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { cartItemId, formatSek, priceForDesign } from "../utils/pricing";
+import {
+  cartItemId,
+  formatSek,
+  FRAME_PRICE_SEK,
+  priceForDesign,
+} from "../utils/pricing";
 import { usePrice } from "../hooks/usePrice";
 
 type Tab = "backdrops" | "logos";
@@ -99,7 +104,7 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
     return (
       <View style={styles.center}>
         <Text style={styles.message}>{errorMessage(details.error)}</Text>
-        <CartButton title="Tillbaka" onPress={() => navigation.goBack()} />
+        <AppButton title="Tillbaka" onPress={() => navigation.goBack()} />
       </View>
     );
   }
@@ -147,6 +152,7 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
               motif={motif}
               maxWidth={previewWidth}
               maxHight={previewWidth}
+              frame={design.frame}
             />
           ) : images.loading ? (
             <ActivityIndicator />
@@ -159,12 +165,14 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
         <Text style={styles.label}>Välj motiv</Text>
         <View style={styles.tabs}>
           <AppButton
-            label={`Bilder (${images.data?.backdrops.length ?? 0})`}
+            variant="chip"
+            title={`Bilder (${images.data?.backdrops.length ?? 0})`}
             selected={tab === "backdrops"}
             onPress={() => setTab("backdrops")}
           />
           <AppButton
-            label={`Loggor (${images.data?.logos.length ?? 0})`}
+            variant="chip"
+            title={`Loggor (${images.data?.logos.length ?? 0})`}
             selected={tab === "logos"}
             onPress={() => setTab("logos")}
           />
@@ -224,12 +232,59 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
           {SIZES.map(({ value, label }) => (
             <AppButton
               key={value}
-              label={label}
+              variant="chip"
+              title={label}
               selected={design.size === value}
               onPress={() => setDesign((prev) => ({ ...prev, size: value }))}
             />
           ))}
         </View>
+        {/* Välj ram och ramfärg */}
+        <View style={styles.toggleRow}>
+          <Text style={styles.label}>Ram +{price(FRAME_PRICE_SEK)}</Text>
+          <Switch
+            value={design.frame.enabled}
+            onValueChange={(enabled) =>
+              setDesign((prev) => ({
+                ...prev,
+                frame: { ...prev.frame, enabled },
+              }))
+            }
+            trackColor={{ false: colors.cut, true: colors.accent }}
+            thumbColor={colors.surface}
+            ios_backgroundColor={colors.cut}
+            accessibilityLabel={`Ram, plus ${price(FRAME_PRICE_SEK)}`}
+          />
+        </View>
+
+        {design.frame.enabled && (
+          <View style={styles.swatches}>
+            {frameColors.map((color) => {
+              const selected = design.frame.color === color;
+              return (
+                <Pressable
+                  key={color}
+                  onPress={() =>
+                    setDesign((prev) => ({
+                      ...prev,
+                      frame: { enabled: true, color },
+                    }))
+                  }
+                  hitSlop={6}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Ramfärg ${color}`}
+                  accessibilityState={{ selected }}
+                  style={[
+                    styles.swatch,
+                    { backgroundColor: color },
+                    selected && styles.swatchSelected,
+                  ]}
+                />
+              );
+            })}
+          </View>
+        )}
+
         {/* Filmfakta från getMovieDetails */}
         <Text style={styles.title}>{movie.title}</Text>
         <Text style={styles.meta}>
@@ -258,7 +313,7 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
             {inCart > 0 ? `${inCart} st i kundvagnen` : "per styck"}
           </Text>
         </View>
-        <CartButton
+        <AppButton
           title={justAdded ? "Tillagd" : "Lägg i Kundvagnen"}
           onPress={addToCart}
         />
@@ -321,10 +376,10 @@ const styles = StyleSheet.create({
 
   // Motivval
   label: {
-    fontSize: fontSize.heading,
+    fontSize: fontSize.body,
     fontWeight: "bold",
     color: colors.textOnDark,
-    marginTop: spacing.l,
+    marginTop: spacing.s,
   },
   tabs: { flexDirection: "row", justifyContent: "space-evenly" },
   inlineError: { alignItems: "center", gap: spacing.s },
@@ -343,6 +398,31 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   thumbLogo: { backgroundColor: colors.logoBackground },
+
+  // ramval
+  toggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.m,
+    justifyContent: "flex-start",
+  },
+  swatches: {
+    flexDirection: "row",
+    gap: spacing.m,
+    paddingVertical: spacing.s,
+  },
+  swatch: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: colors.textOnDark,
+  },
+  swatchSelected: {
+    borderWidth: 4,
+    borderColor: colors.accent,
+    transform: [{ scale: 1.15 }],
+  },
 
   // "Köpfältet längst ner"
   byFeald: {

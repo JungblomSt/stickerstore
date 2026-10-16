@@ -1,49 +1,68 @@
 import { Pressable, StyleSheet, Text } from "react-native";
-import { colors } from "../theme";
+import { colors, fontSize, spacing } from "../theme";
 
 type Props = {
-  label: string;
-  selected: boolean;
+  title: string;
   onPress: () => void;
+  variant?: "primary" | "chip";
+  selected?: boolean;
 };
 
-export function AppButton({ label, selected, onPress }: Props) {
+export function AppButton({
+  title,
+  onPress,
+  variant = "primary",
+  selected = false,
+}: Props) {
+  const isChip = variant === "chip";
+
   return (
     <Pressable
       onPress={onPress}
-      accessibilityRole="tab"
-      accessibilityState={{ selected }}
+      accessibilityRole={isChip ? "tab" : "button"}
+      accessibilityState={isChip ? { selected } : undefined}
       style={({ pressed }) => [
-        styles.chip,
-        selected && styles.selected,
+        styles.base,
+        isChip ? styles.chip : styles.primary,
+        isChip && selected && styles.chipSelected,
         pressed && styles.pressed,
       ]}
     >
       <Text
-        style={[styles.label, selected && styles.labelSelected]}
+        style={[
+          styles.text,
+          isChip ? styles.chipText : styles.primaryText,
+          isChip && selected && styles.chipTextSelected,
+        ]}
         maxFontSizeMultiplier={1.5}
       >
-        {label}
+        {title}
       </Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  base: { borderRadius: 999, alignItems: "center", justifyContent: "center" },
+  pressed: { opacity: 0.8 },
+  text: { fontSize: fontSize.body },
+
+  primary: {
+    backgroundColor: colors.accent,
+    paddingVertical: spacing.m,
+    paddingHorizontal: spacing.l,
+    minHeight: 44,
+  },
+  primaryText: { color: colors.text, fontWeight: "bold" },
+
   chip: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingVertical: spacing.s,
+    paddingHorizontal: spacing.m,
     minHeight: 36,
-    justifyContent: "center",
-    borderRadius: 999,
     borderWidth: 2,
     borderColor: colors.cut,
   },
-  selected: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
-  },
-  pressed: { opacity: 0.8 },
-  label: { color: colors.textOnDark, fontWeight: "600" },
-  labelSelected: { color: colors.text },
+  chipSelected: { backgroundColor: colors.accent, borderColor: colors.accent },
+  chipText: { color: colors.textOnDark, fontWeight: "600" },
+  chipTextSelected: { color: colors.text },
 });

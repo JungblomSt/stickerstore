@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { setCurrency } from "../store/currencySlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { CartButton } from "./CartButton";
 import { colors, fontSize, spacing } from "../theme";
 import { useRates } from "../hooks/useRates";
 import { useState } from "react";
