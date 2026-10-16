@@ -11,13 +11,11 @@ import {
   View,
 } from "react-native";
 import type { CatalogScreenProps } from "../navigation/types";
-import { imageUrl, getPopularMovies } from "../api/tmdb";
-import { useFetch } from "../hooks/useFetch";
+import { imageUrl } from "../api/tmdb";
 import { useMovies } from "../hooks/useMovies";
 import { useDebouncedValue } from "../utils/helpers";
 import { errorMessage } from "../utils/errorMessage";
 import { colors, fontSize, spacing } from "../theme";
-import { CartButton } from "../components/CartButton";
 
 export default function CatalogScreen({ navigation }: CatalogScreenProps) {
   const [search, setSearch] = useState("");

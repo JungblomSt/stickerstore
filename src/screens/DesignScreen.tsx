@@ -17,7 +17,6 @@ import { useFetch } from "../hooks/useFetch";
 import type { DesignScreenProps } from "../navigation/types";
 import { errorMessage } from "../utils/errorMessage";
 import { colors, fontSize, spacing } from "../theme";
-import { CartButton } from "../components/CartButton";
 import { AppButton } from "../components/AppButton";
 import type {
   Motif,
@@ -99,7 +98,7 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
     return (
       <View style={styles.center}>
         <Text style={styles.message}>{errorMessage(details.error)}</Text>
-        <CartButton title="Tillbaka" onPress={() => navigation.goBack()} />
+        <AppButton title="Tillbaka" onPress={() => navigation.goBack()} />
       </View>
     );
   }
@@ -159,12 +158,14 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
         <Text style={styles.label}>Välj motiv</Text>
         <View style={styles.tabs}>
           <AppButton
-            label={`Bilder (${images.data?.backdrops.length ?? 0})`}
+            variant="chip"
+            title={`Bilder (${images.data?.backdrops.length ?? 0})`}
             selected={tab === "backdrops"}
             onPress={() => setTab("backdrops")}
           />
           <AppButton
-            label={`Loggor (${images.data?.logos.length ?? 0})`}
+            variant="chip"
+            title={`Loggor (${images.data?.logos.length ?? 0})`}
             selected={tab === "logos"}
             onPress={() => setTab("logos")}
           />
@@ -224,7 +225,8 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
           {SIZES.map(({ value, label }) => (
             <AppButton
               key={value}
-              label={label}
+              variant="chip"
+              title={label}
               selected={design.size === value}
               onPress={() => setDesign((prev) => ({ ...prev, size: value }))}
             />
@@ -258,7 +260,7 @@ export default function DesignScreen({ navigation, route }: DesignScreenProps) {
             {inCart > 0 ? `${inCart} st i kundvagnen` : "per styck"}
           </Text>
         </View>
-        <CartButton
+        <AppButton
           title={justAdded ? "Tillagd" : "Lägg i Kundvagnen"}
           onPress={addToCart}
         />
